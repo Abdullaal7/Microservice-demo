@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_SERVER_ENABLE_SELF_PRESERVATION=false
+    networks:
+      - microservice-network
+
+  config-server:
+    build:
+      context: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:///config-repo
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    volumes:
+      - ./config-repo:/config-repo  # Ensure your configuration repository is mapped here
+    depends_on:
+      - eureka-server
+    networks:
+      - microservice-network
+
+  voter-service:
+    build:
+      context: ./voter
+    container_name: voter-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://voter-db:5432/voter
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+    depends_on:
+      - eureka-server
+      - config-server
+      - voter-db
+    networks:
+      - microservice-network
+
+  election-definition-service:
+    build:
+      context: ./election_definition
+    container_name: election-definition-service
+    ports:
+      - "8091:8091"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://election-db:5432/election_definition
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+    depends_on:
+      - eureka-server
+      - config-server
+      - election-db
+    networks:
+      - microservice-network
+
+  position-service:
+    build:
+      context: ./position
+    container_name: position-service
+    ports:
+      - "8092:8092"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://position-db:5432/position
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+    depends_on:
+      - eureka-server
+      - config-server
+      - position-db
+    networks:
+      - microservice-network
+
+  candidate-service:
+    build:
+      context: ./candidate
+    container_name: candidate-service
+    ports:
+      - "8093:8093"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://candidate-db:5432/candidate
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+    depends_on:
+      - eureka-server
+      - config-server
+      - candidate-db
+    networks:
+      - microservice-network
+
+  vote-service:
+    build:
+      context: ./vote
+    container_name: vote-service
+    ports:
+      - "8094:8094"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://vote-db:5432/vote
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+    depends_on:
+      - eureka-server
+      - config-server
+      - vote-db
+    networks:
+      - microservice-network
+
+  result-service:
+    build:
+      context: ./result
+    container_name: result-service
+    ports:
+      - "8095:8095"
+    environment:
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - microservice-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8088:8088"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - microservice-network
+
+  voter-db:
+    image: postgres:13
+    container_name: voter-db
+    environment:
+      - POSTGRES_DB=voter
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    ports:
+      - "5433:5432"
+    networks:
+      - microservice-network
+    volumes:
+      - voter-db-data:/var/lib/postgresql/data
+
+  election-db:
+    image: postgres:13
+    container_name: election-db
+    environment:
+      - POSTGRES_DB=election_definition
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    ports:
+      - "5434:5432"
+    networks:
+      - microservice-network
+    volumes:
+      - election-db-data:/var/lib/postgresql/data
+
+  position-db:
+    image: postgres:13
+    container_name: position-db
+    environment:
+      - POSTGRES_DB=position
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    ports:
+      - "5435:5432"
+    networks:
+      - microservice-network
+    volumes:
+      - position-db-data:/var/lib/postgresql/data
+
+  candidate-db:
+    image: postgres:13
+    container_name: candidate-db
+    environment:
+      - POSTGRES_DB=candidate
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    ports:
+      - "5436:5432"
+    networks:
+      - microservice-network
+    volumes:
+      - candidate-db-data:/var/lib/postgresql/data
+
+  vote-db:
+    image: postgres:13
+    container_name: vote-db
+    environment:
+      - POSTGRES_DB=vote
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    ports:
+      - "5437:5432"
+    networks:
+      - microservice-network
+    volumes:
+      - vote-db-data:/var/lib/postgresql/data
+
+networks:
+  microservice-network:
+    driver: bridge
+
+volumes:
+  voter-db-data:
+  election-db-data:
+  position-db-data:
+  candidate-db-data:
+  vote-db-data:

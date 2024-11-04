@@ -1,0 +1,34 @@
+server:
+  port: 8888  # Port for the Config Server
+
+spring:
+  application:
+    name: config-server
+
+  profiles:
+    active: native
+
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:///D:/Microservice%20Session/config-repo  # Use three slashes and URL encode spaces
+      label: main  # Optional, branch or version label (for Git, this would be the branch name)
+
+
+eureka:
+  instance:
+    prefer-ip-address: true  # Use IP address instead of hostname
+    lease-renewal-interval-in-seconds: 15  # Send a heartbeat every 15 seconds
+    lease-expiration-duration-in-seconds: 90  # Expire the instance if no heartbeat for 90 seconds
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # The URL for the Eureka server
+    register-with-eureka: true  # Register this client with Eureka
+    fetch-registry: true  # Enable fetching of the registry
+
+# Optional logging configuration for troubleshooting purposes
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG

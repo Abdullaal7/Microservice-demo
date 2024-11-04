@@ -1,0 +1,77 @@
+server:
+  port: 8095
+
+spring:
+  application:
+    name: result-service
+
+  # Disable Liquibase
+  liquibase:
+    enabled: false
+
+  # Disable DataSource and JPA since no database is needed
+  datasource:
+    url: none
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false  # No need to show SQL logs
+    open-in-view: false  # Disable JPA session management for views
+  data:
+    jpa:
+      repositories:
+        enabled: false  # Disable JPA repositories if not needed
+
+  mvc:
+    webjars:
+      enabled: false  # Disable WebJars
+  
+  
+  web:
+    resources:
+      add-mappings: false  
+
+eureka:
+  instance:
+    prefer-ip-address: true  # Use IP address instead of hostname
+    lease-renewal-interval-in-seconds: 15  # Send a heartbeat every 15 seconds
+    lease-expiration-duration-in-seconds: 90  # Expire the instance if no heartbeat for 90 seconds
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # The URL for the Eureka server
+    register-with-eureka: true  # Register this client with Eureka
+    fetch-registry: true  # Enable fetching of the registry
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    jackson:
+      isolated-object-mapper: true
+    web:
+      exposure:
+        include: health
+
+health:
+  circuitbreakers:
+    enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+    instances:
+      resultServiceCircuitBreaker:
+        base-config: default
+      voteServiceCircuitBreaker:
+        base-config: default
+

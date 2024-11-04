@@ -1,0 +1,57 @@
+server:
+  port: 8088 # The port where your API Gateway will run
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway # The name of your service (will appear in Eureka)
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Enable route discovery using Eureka service discovery
+
+      routes:
+        - id: voter-service
+          uri: lb://VOTER-SERVICE  # Voter service registered in Eureka
+          predicates:
+            - Path=/voter/**
+        - id: election-definition-service
+          uri: lb://ELECTION-DEFINITION-SERVICE  # Election service registered in Eureka
+          predicates:
+            - Path=/elections/**
+        - id: position-service
+          uri: lb://POSITION-SERVICE  # Position service registered in Eureka
+          predicates:
+            - Path=/positions/**
+        - id: candidate-service
+          uri: lb://CANDIDATE-SERVICE  # Candidate service registered in Eureka
+          predicates:
+            - Path=/candidates/**
+        - id: vote-service
+          uri: lb://VOTE-SERVICE
+          predicates:
+            - Path=/vote/**
+        - id: result-service
+          uri: lb://RESULT-SERVICE  # Result service registered in Eureka
+          predicates:
+            - Path=/results/**
+
+eureka:
+  instance:
+    prefer-ip-address: true  # Use IP address instead of hostname
+    lease-renewal-interval-in-seconds: 15  # Send a heartbeat every 15 seconds
+    lease-expiration-duration-in-seconds: 90  # Expire the instance if no heartbeat for 90 seconds
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/  # The URL for the Eureka server
+    register-with-eureka: true  # Register this client with Eureka
+    fetch-registry: true  # Enable fetching of the registry
+
+# Optional logging configuration for troubleshooting purposes
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG

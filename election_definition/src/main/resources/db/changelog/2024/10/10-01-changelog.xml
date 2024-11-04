@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- ChangeSet to create the Election table -->
+    <changeSet id="2" author="your-name">
+        <createTable tableName="election">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="version" type="INT">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="name" type="NVARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="start_date" type="DATE">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="end_date" type="DATE">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

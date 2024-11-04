@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: vote-service
+
+  cloud:
+    config:
+      uri: http://localhost:8888  # Points to your Config Server URL
+      fail-fast: true  # Optional: Fails the app startup if the config server is not available
+
+  config:
+    import: configserver:http://config-server:8888  # Ensure it imports the config from the Config Server
