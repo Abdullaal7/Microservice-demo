@@ -35,5 +35,5 @@ public class Voter {
     @Column
     private String phone;
 
-// test webhook
+// test for the webhook
 }
